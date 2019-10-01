@@ -12,8 +12,7 @@ def check_table_exist():
 def create_dag(dag_id, start_date, table, database, schedule_interval=None):
     with DAG(dag_id=dag_id, start_date=datetime.fromisoformat(start_date), schedule_interval=schedule_interval) as dag:
         start = PythonOperator(task_id='start',
-                               python_callable=lambda: print(
-                                   f"{dag_id} start processing tables in database: {database}"))
+                               python_callable=lambda: print(f"{dag_id} start processing tables in DB: {database}"))
         check_exist = BranchPythonOperator(task_id="check_table_exist", python_callable=check_table_exist)
         create_table = DummyOperator(task_id='create_table')
         do_nothing = DummyOperator(task_id='do_nothing')
