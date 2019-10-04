@@ -3,12 +3,73 @@ from datetime import datetime
 from airflow.contrib.sensors.file_sensor import FileSensor
 from airflow.operators.dagrun_operator import TriggerDagRunOperator
 from airflow.operators.bash_operator import BashOperator
+from airflow.models.variable import Variable
+from airflow.operators.python_operator import PythonOperator
+from airflow.operators.subdag_operator import SubDagOperator
+from airflow.sensors.external_task_sensor import ExternalTaskSensor
 
-FILE_PATH = '/Users/atalanov/Desktop/run'
+DEFAULT_FILE_PATH = '/Users/atalanov/Desktop/run'
+DEFAULT_FINISHED_DIR = '/Users/atalanov/Desktop/'
 
-with DAG(dag_id='trigger_dag', start_date=datetime.fromisoformat('2019-10-01'), schedule_interval=None) as dag:
-    file_sensor = FileSensor(task_id='file_sensor', filepath=FILE_PATH, poke_interval=10)
-    dug_trigger = TriggerDagRunOperator(task_id='dug_trigger', trigger_dag_id='dag_id_1')
-    remove_file = BashOperator(task_id='remove_file', bash_command=f'rm -f {FILE_PATH}')
 
-file_sensor >> dug_trigger >> remove_file
+def print_result_func(external_dag_id, last_task_id):
+    def init(**context):
+        msg = context['ti'].xcom_pull(dag_id=external_dag_id, task_ids=last_task_id)
+        print(f'Dag={external_dag_id}, task={last_task_id} return value={msg}')
+
+    return init
+
+
+def create_monitoring_dag(parent_dag, start_date, schedule_interval, triggered_dag_id, finish_file_dir):
+    with DAG(
+            dag_id=f'{parent_dag}.monitoring_dag',
+            start_date=start_date,
+            schedule_interval=schedule_interval
+    ) as sub_dag:
+        external_dag_sensor = ExternalTaskSensor(
+            task_id='external_dag_sensor',
+            external_dag_id=triggered_dag_id,
+            external_task_id='',
+            poke_interval=10)
+
+        print_result = PythonOperator(
+            task_id='print_result',
+            provide_context=True,
+            python_callable=print_result_func(external_dag_id=triggered_dag_id, last_task_id='end'))
+
+        remove_file = BashOperator(
+            task_id='remove_file',
+            bash_command=f'rm -f {file_path}')
+
+        create_finish_file = BashOperator(
+            task_id='create_finish_file',
+            bash_command="touch {{ params.finish_file_dir }}/finished_{{ ts_nodash }}",
+            params={'finish_file_dir': finish_file_dir}
+        )
+
+    external_dag_sensor >> print_result >> remove_file >> create_finish_file
+
+    return sub_dag
+
+
+file_path = Variable.get('trigger_file_path', default_var=DEFAULT_FILE_PATH)
+finished_dir = Variable.get('finished_dir', default_var=DEFAULT_FINISHED_DIR)
+trigger_dag_id = Variable.get('trigger_dag_id', default_var='dag_id_1')
+
+with DAG(
+        dag_id='trigger_dag',
+        start_date=datetime.fromisoformat('2019-10-03 00:00:00'),
+        schedule_interval=None
+) as dag:
+    file_sensor = FileSensor(task_id='file_sensor', filepath=file_path, poke_interval=10)
+    dug_trigger = TriggerDagRunOperator(
+        task_id='dug_trigger', trigger_dag_id=trigger_dag_id, execution_date='{{ execution_date }}')
+    monitoring_subdag = SubDagOperator(
+        task_id='monitoring_dag',
+        subdag=create_monitoring_dag(parent_dag=dag.dag_id,
+                                     start_date=dag.start_date,
+                                     schedule_interval=dag.schedule_interval,
+                                     triggered_dag_id=trigger_dag_id,
+                                     finish_file_dir=finished_dir))
+
+file_sensor >> dug_trigger >> monitoring_subdag
