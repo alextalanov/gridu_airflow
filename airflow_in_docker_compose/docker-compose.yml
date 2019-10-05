@@ -22,7 +22,8 @@ services:
     depends_on:
     - postgres
     volumes:
-    - ./../dags:$AIRFLOW_HOME/dags
+    - ./../dags:/usr/local/airflow/dags
+    - ./../shared_fs:/usr/local/airflow/shared_fs
     ports:
     - "9000:9000"
     entrypoint: airflow webserver
@@ -37,10 +38,74 @@ services:
     depends_on:
     - postgres
     volumes:
-    - ./../dags:$AIRFLOW_HOME/dags
+    - ./../dags:/usr/local/airflow/dags
+    - ./../shared_fs:/usr/local/airflow/shared_fs
     entrypoint: airflow scheduler
     healthcheck:
-      test: ["CMD-SHELL", "[ -f $AIRFLOW_HOME/airflow-scheduler.pid ]"]
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-scheduler.pid ]"]
       interval: 30s
       timeout: 30s
       retries: 3
+  redis:
+    image: redis:5.0.5
+  worker_1:
+    build: .
+    restart: always
+    depends_on:
+    - postgres
+    - redis
+    volumes:
+    - ./../dags:/usr/local/airflow/dags
+    - ./../shared_fs:/usr/local/airflow/shared_fs
+    entrypoint: airflow worker -cn worker_1
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+#  worker_2:
+#    build: .
+#    restart: always
+#    depends_on:
+#    - postgres
+#    - redis
+#    volumes:
+#    - ./../dags:/usr/local/airflow/dags
+#    - ./../shared_fs:/usr/local/airflow/shared_fs
+#    entrypoint: airflow worker -cn worker_2
+#    healthcheck:
+#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3
+#  worker_3:
+#    build: .
+#    restart: always
+#    depends_on:
+#    - postgres
+#    - redis
+#    volumes:
+#    - ./../dags:/usr/local/airflow/dags
+#    - ./../shared_fs:/usr/local/airflow/shared_fs
+#    entrypoint: airflow worker -cn worker_3
+#    healthcheck:
+#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
+#      interval: 30s
+#      timeout: 30s
+#      retries: 3
+  flower:
+    build: .
+    restart: always
+    depends_on:
+    - postgres
+    volumes:
+    - ./../dags:/usr/local/airflow/dags
+    - ./../shared_fs:/usr/local/airflow/shared_fs
+    entrypoint: airflow flower
+    healthcheck:
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-flower.pid ]"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    ports:
+    - "5555:5555"

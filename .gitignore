@@ -108,3 +108,5 @@ venv.bak/
 .gitignore
 .idea/
 gridu-airflow.iml
+airflow_in_docker_compose/data/
+shared_fs/*

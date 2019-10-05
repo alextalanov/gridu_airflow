@@ -20,7 +20,7 @@ def start_func(dag_id, database):
 def create_dag(dag_id, start_date, table, database, schedule_interval=None):
     with DAG(
             dag_id=dag_id,
-            start_date=datetime.fromisoformat(start_date),
+            start_date=start_date,
             schedule_interval=schedule_interval
     ) as dag:
         start = PythonOperator(task_id='start', python_callable=start_func(dag_id, database))
@@ -38,9 +38,9 @@ def create_dag(dag_id, start_date, table, database, schedule_interval=None):
 
 
 config = {
-    'dag_id_1': {'schedule_interval': None, 'start_date': '2019-10-01 00:00:00', 'table_name': 'table_name_1'},
-    'dag_id_2': {'schedule_interval': None, 'start_date': '2019-10-01 00:00:00', 'table_name': 'table_name_2'},
-    'dag_id_3': {'schedule_interval': None, 'start_date': '2019-10-01 00:00:00', 'table_name': 'table_name_3'}
+    'dag_id_1': {'schedule_interval': None, 'start_date': datetime(2019, 10, 1), 'table_name': 'table_name_1'},
+    'dag_id_2': {'schedule_interval': None, 'start_date': datetime(2019, 10, 1), 'table_name': 'table_name_2'},
+    'dag_id_3': {'schedule_interval': None, 'start_date': datetime(2019, 10, 1), 'table_name': 'table_name_3'}
 }
 
 for key, value in config.items():
