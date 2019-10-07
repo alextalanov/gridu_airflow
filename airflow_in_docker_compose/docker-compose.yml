@@ -23,6 +23,7 @@ services:
     - postgres
     volumes:
     - ./../dags:/usr/local/airflow/dags
+    - ./../plugins:/usr/local/airflow/plugins
     - ./../shared_fs:/usr/local/airflow/shared_fs
     ports:
     - "9000:9000"
@@ -39,6 +40,7 @@ services:
     - postgres
     volumes:
     - ./../dags:/usr/local/airflow/dags
+    - ./../plugins:/usr/local/airflow/plugins
     - ./../shared_fs:/usr/local/airflow/shared_fs
     entrypoint: airflow scheduler
     healthcheck:
@@ -56,6 +58,7 @@ services:
     - redis
     volumes:
     - ./../dags:/usr/local/airflow/dags
+    - ./../plugins:/usr/local/airflow/plugins
     - ./../shared_fs:/usr/local/airflow/shared_fs
     entrypoint: airflow worker -cn worker_1
     healthcheck:
@@ -71,6 +74,7 @@ services:
 #    - redis
 #    volumes:
 #    - ./../dags:/usr/local/airflow/dags
+#    - ./../plugins:/usr/local/airflow/plugins
 #    - ./../shared_fs:/usr/local/airflow/shared_fs
 #    entrypoint: airflow worker -cn worker_2
 #    healthcheck:
@@ -86,6 +90,7 @@ services:
 #    - redis
 #    volumes:
 #    - ./../dags:/usr/local/airflow/dags
+#    - ./../plugins:/usr/local/airflow/plugins
 #    - ./../shared_fs:/usr/local/airflow/shared_fs
 #    entrypoint: airflow worker -cn worker_3
 #    healthcheck:
@@ -100,6 +105,7 @@ services:
     - postgres
     volumes:
     - ./../dags:/usr/local/airflow/dags
+    - ./../plugins:/usr/local/airflow/plugins
     - ./../shared_fs:/usr/local/airflow/shared_fs
     entrypoint: airflow flower
     healthcheck:

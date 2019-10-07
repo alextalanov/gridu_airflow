@@ -4,6 +4,7 @@ from airflow.operators.python_operator import PythonOperator, BranchPythonOperat
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.bash_operator import BashOperator
 from airflow.hooks.postgres_hook import PostgresHook
+from airflow.operators.postgres_custom import PostgreSQLCountRows
 from uuid import uuid4
 from time import time
 
@@ -62,17 +63,6 @@ def insert_row(schema, table):
     return init
 
 
-def select_count(schema, table):
-    def init():
-        hook = PostgresHook()
-        count = hook.get_first(sql=f'''
-           SELECT COUNT(*) FROM {schema}.{table}
-        ''')
-        return count
-
-    return init
-
-
 def create_dag(dag_id, start_date, table, database, schedule_interval=None):
     with DAG(
             dag_id=dag_id,
@@ -93,8 +83,7 @@ def create_dag(dag_id, start_date, table, database, schedule_interval=None):
         insert_new_row = PythonOperator(task_id='insert_new_row', provide_context=True, trigger_rule='all_done',
                                         python_callable=insert_row(schema=database, table=table))
 
-        query_the_table = PythonOperator(task_id='query_the_table',
-                                         python_callable=select_count(schema=database, table=table))
+        query_the_table = PostgreSQLCountRows(task_id='query_the_table', schema=database, table=table)
 
         end = BashOperator(task_id='end', xcom_push=True, bash_command="echo '{{ run_id }} ended'")
 
