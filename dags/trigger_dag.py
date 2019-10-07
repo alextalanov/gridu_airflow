@@ -12,13 +12,13 @@ from pathlib import Path
 
 SHARED_FS_CONN_ID = 'docker_compose_shared'
 DEFAULT_FILE_PATH = 'trigger_files/run'
-DEFAULT_FINISHED_DIR = 'finished/'
-DEFAULT_TRIGGERED_DAG = 'dag_id_1'
+DEFAULT_FINISH_DIR = 'finished/'
+DEFAULT_TRIGGER_DAG = 'dag_id_1'
 
 shared_fs_path = Path(FSHook(conn_id=SHARED_FS_CONN_ID).get_path())
 trigger_file = Variable.get('trigger_file_path', default_var=DEFAULT_FILE_PATH)
-finish_dir = Variable.get('finished_dir', default_var=DEFAULT_FINISHED_DIR)
-trigger_dag_id = Variable.get('trigger_dag_id', default_var=DEFAULT_TRIGGERED_DAG)
+finish_dir = Variable.get('finished_dir', default_var=DEFAULT_FINISH_DIR)
+trigger_dag_id = Variable.get('trigger_dag_id', default_var=DEFAULT_TRIGGER_DAG)
 
 
 def print_result_func(external_dag_id, last_task_id):
