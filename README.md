@@ -21,7 +21,7 @@ Login to postgres DB using:
 <li>user: airflow </li>
 <li>password: airflow </li>
 </ul>
-<p>Execute sql query <i>update connection set login='airflow' where conn_id='postgres_default'</i><p>
+<p>Execute sql query: <b><i>update connection set login='airflow' where conn_id='postgres_default'</i></b><p>
 </p>
 
 <p>
