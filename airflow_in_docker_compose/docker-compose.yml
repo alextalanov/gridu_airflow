@@ -11,11 +11,17 @@ services:
     - "5432:5432"
     volumes:
     - ./data/postgres:/var/lib/postgresql/data
-#  initdb:
-#    build: .
-#    entrypoint: airflow initdb
-#    depends_on:
-#    - postgres
+  initdb:
+    build: .
+    entrypoint: airflow initdb
+    depends_on:
+    - postgres
+  init_fs_path:
+    build: .
+    entrypoint: airflow connections --add --conn_id=docker_compose_shared --conn_type=fs --conn_extra='{"path":"/usr/local/airflow/shared_fs"}'
+    depends_on:
+    - postgres
+    - initdb
   webserver:
     build: .
     restart: always
@@ -29,7 +35,7 @@ services:
     - "9000:9000"
     entrypoint: airflow webserver
     healthcheck:
-      test: ["CMD-SHELL", "[ -f $AIRFLOW_HOME/airflow-webserver.pid ]"]
+      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
       interval: 30s
       timeout: 30s
       retries: 3
@@ -50,54 +56,21 @@ services:
       retries: 3
   redis:
     image: redis:5.0.5
-  worker_1:
+  worker:
     build: .
     restart: always
     depends_on:
     - postgres
-    - redis
     volumes:
     - ./../dags:/usr/local/airflow/dags
     - ./../plugins:/usr/local/airflow/plugins
     - ./../shared_fs:/usr/local/airflow/shared_fs
-    entrypoint: airflow worker -cn worker_1
+    entrypoint: airflow worker
     healthcheck:
       test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
       interval: 30s
       timeout: 30s
       retries: 3
-#  worker_2:
-#    build: .
-#    restart: always
-#    depends_on:
-#    - postgres
-#    - redis
-#    volumes:
-#    - ./../dags:/usr/local/airflow/dags
-#    - ./../plugins:/usr/local/airflow/plugins
-#    - ./../shared_fs:/usr/local/airflow/shared_fs
-#    entrypoint: airflow worker -cn worker_2
-#    healthcheck:
-#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
-#      interval: 30s
-#      timeout: 30s
-#      retries: 3
-#  worker_3:
-#    build: .
-#    restart: always
-#    depends_on:
-#    - postgres
-#    - redis
-#    volumes:
-#    - ./../dags:/usr/local/airflow/dags
-#    - ./../plugins:/usr/local/airflow/plugins
-#    - ./../shared_fs:/usr/local/airflow/shared_fs
-#    entrypoint: airflow worker -cn worker_3
-#    healthcheck:
-#      test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-worker.pid ]"]
-#      interval: 30s
-#      timeout: 30s
-#      retries: 3
   flower:
     build: .
     restart: always
