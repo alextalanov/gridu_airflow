@@ -1,7 +1,9 @@
+## GridU Airflow
+
 Go to the <b>airflow_in_docker_compose</b> folder.
 
 <p>
-For the first run use following commands:
+<h4>For the first run use following commands:</h4>
 <ul>
 <li><i>docker pull redis:5.0.5</i></li>
 <li><i>docker pull postgres:9.6</i></li>
@@ -15,7 +17,7 @@ For the first run use following commands:
 </p>
 
 <p>
-Login to postgres DB using:
+<h4>Login to postgres DB using:</h4>
 <ul>
 <li>url: jdbc:postgresql://localhost:5432/airflow </li>
 <li>user: airflow </li>
@@ -25,14 +27,14 @@ Login to postgres DB using:
 </p>
 
 <p>
-Next time you can use: 
+<h4>Next time you can use: </h4>
 <ul>
 <li><i>docker-compose up -d --scale worker=2 postgres webserver scheduler redis worker flower</i></li>
 </ul>
 </p>
 
 <p>
-For run pipeline:
+<h4>For run pipeline:</h4>
 <ol>
  <li>enable <b>dag_id_1</b> and <b>trigger_dag</b></li>
  <li>trigger <b>trigger_dag</b></li>

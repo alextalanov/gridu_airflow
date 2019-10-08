@@ -75,6 +75,7 @@ def create_dag(dag_id, start_date, table, database, schedule_interval=None):
 
         check_exist = BranchPythonOperator(task_id="check_table_exist",
                                            python_callable=check_table_exist(schema=database, table=table))
+
         create_table = PythonOperator(task_id='create_table',
                                       python_callable=create_table_func(schema=database, table=table))
 

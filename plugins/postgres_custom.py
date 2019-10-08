@@ -25,7 +25,7 @@ class PostgreSQLCountRows(BaseOperator):
             schema = {self.schema},
             table = {self.table}
         ''')
-        return self.hook.get_first(sql=f'SELECT COUNT(*) FROM {self.schema}.{self.table}')
+        return self.hook.get_first(sql=f'SELECT COUNT(1) FROM {self.schema}.{self.table}')[0]
 
 
 class AirflowTestPlugin(AirflowPlugin):
